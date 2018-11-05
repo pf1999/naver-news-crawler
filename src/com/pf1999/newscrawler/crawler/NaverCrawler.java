@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -26,6 +27,7 @@ public class NaverCrawler extends Thread{
 		sb = new StringBuilder();
 		driver = new ChromeDriver();
 		articles = new ArrayList<>();
+		latestId = new HashMap<>();
 	}
 	
 	/*
@@ -45,7 +47,7 @@ public class NaverCrawler extends Thread{
 	/*
 	 * Crawler configuration variables
 	 */
-	private int interval 	= 1000 * 60 * 30; // ms
+	private int interval 	= 1000 * 60 * 3; // ms
 	private int category	= CAT_POLITICS | CAT_ECONOMY | CAT_SOCIETY | CAT_CULTURE | CAT_WORLD | CAT_SCIENCE;
 	private boolean run		= true;
 	private StringBuilder sb;
@@ -67,11 +69,15 @@ public class NaverCrawler extends Thread{
 	 */
 	WebDriver driver;
 	ArrayList<NewsArticle> articles;
+	HashMap<Integer, String>latestId;
 	
 	/*
 	 * Crawler mothods
 	 */
-	public void close() { this.run = false; }
+	public void close() {
+		this.run = false;
+		driver.close();
+	}
 	
 	@Override
 	public void run() {
@@ -82,7 +88,7 @@ public class NaverCrawler extends Thread{
 		int page = 1;
 		boolean old = false;
 		
-//		while (run) {
+		while (run) {
 			// Get article lists(title, url, press), not contents
 			for (int i = 0; i < sid1.length; i++) {
 				while(true) {
@@ -92,23 +98,39 @@ public class NaverCrawler extends Thread{
 					driver.get(sb.toString());
 					doc = Jsoup.parse(driver.getPageSource());
 					
+					// Entire article lists container element is named 'section_body'
 					elements = doc.select("#section_body li");
 					if (elements.isEmpty())
 						break;
 					
 					for (Element e : elements) {
 						Elements a = e.select("a");
+						String aid = a.attr("href").substring(a.attr("href").indexOf("aid=") + 4);
+						
+						if (latestId.get(sid1[i]) != null && aid.compareTo(latestId.get(sid1[i])) == 0) {
+							old = true;
+							break;
+						}
+						
 						articles.add(new NewsArticle(
 								sid1[i],
-								a.attr("href").substring(a.attr("href").indexOf("aid=") + 4),
-								a.attr("href"),
+								// Parse only its 'aid' that articles primary key
+								aid,
+								URL_HOME + a.attr("href"),
 								a.text(),
 								e.select(".writing").text()));
 						
+						// Naver classify article 'outdated' after an hour since published. As this policy, only collect 'new' articles
 						if (e.select(".is_new").isEmpty()) {
 							old = true;
 							break;
 						}
+					}
+					
+					// Save latest article's aid from each category to avoid getting duplicate article  
+					if (page == 1) {
+						String href = elements.get(0).select("a").attr("href");
+						latestId.put(sid1[i], href.substring(href.indexOf("aid=") + 4));
 					}
 					
 					if (old) break;
@@ -123,7 +145,7 @@ public class NaverCrawler extends Thread{
 				NewsArticle article = articles.get(i);
 				
 				sb.setLength(0);
-				sb.append(URL_HOME).append(article.url);
+				sb.append(article.url);
 				
 				driver.get(sb.toString());
 				doc = Jsoup.parse(driver.getPageSource());
@@ -134,7 +156,7 @@ public class NaverCrawler extends Thread{
 				articles.set(i, article);
 			}
 			
-			File f = new File("D:/articles.txt");
+			File f = new File("./articles.txt");
 			FileWriter fw = null;
 			try {
 				fw = new FileWriter(f, true);
@@ -149,12 +171,14 @@ public class NaverCrawler extends Thread{
 				}
 			}
 			
-//			try {
-//				Thread.sleep(interval);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//				close();
-//			}
-//		}
+			articles.clear();
+			
+			try {
+				Thread.sleep(interval);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				close();
+			}
+		}
 	}
 }
