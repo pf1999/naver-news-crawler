@@ -34,8 +34,7 @@ public class NaverCrawler extends Thread{
 	private static final String URL_HOME = "https://news.naver.com";
 	private static final String URL_HEADLINE = "/main/main.nhn?mode=LSS3D&mid=shm&";
 	
-	// private static final int sid1[] = {100, 101, 102, 103, 104, 105};
-	private static final int sid1[] = {100};
+	private static final int sid1[] = {100, 101, 102, 103, 104, 105};
 	private static final int CAT_POLITICS 	= 1 << 0;
 	private static final int CAT_ECONOMY 	= 1 << 1;
 	private static final int CAT_SOCIETY 	= 1 << 2;
