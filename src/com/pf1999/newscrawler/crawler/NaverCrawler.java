@@ -8,10 +8,11 @@ package com.pf1999.newscrawler.crawler;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
-import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -34,9 +35,10 @@ public class NaverCrawler extends Thread{
 	 * Predefined constants
 	 */
 	private static final String URL_HOME = "https://news.naver.com";
-	private static final String URL_HEADLINE = "/main/main.nhn?mode=LSS3D&mid=shm&";
+	private static final String URL_HEADLINE = "/main/main.nhn?mode=LSD&mid=shm&";
+	private static final String URL_BREAKING = "/main/list.nhn?mode=LSD&mid=sec";
 	
-	private static final int sid1[] = {100, 101, 102, 103, 104, 105};
+	private static final int sid1[] = {001, 100, 101, 102, 103, 104, 105};
 	private static final int CAT_POLITICS 	= 1 << 0;
 	private static final int CAT_ECONOMY 	= 1 << 1;
 	private static final int CAT_SOCIETY 	= 1 << 2;
@@ -47,7 +49,7 @@ public class NaverCrawler extends Thread{
 	/*
 	 * Crawler configuration variables
 	 */
-	private int interval 	= 1000 * 60 * 3; // ms
+	private int interval 	= 1000 * 60 * 5; // ms
 	private int category	= CAT_POLITICS | CAT_ECONOMY | CAT_SOCIETY | CAT_CULTURE | CAT_WORLD | CAT_SCIENCE;
 	private boolean run		= true;
 	private StringBuilder sb;
@@ -81,25 +83,39 @@ public class NaverCrawler extends Thread{
 	
 	@Override
 	public void run() {
-		Connection.Response res = null;
 		Document doc = null;
 		Elements elements = null;
 		
 		int page = 1;
 		boolean old = false;
 		
+		SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+		
 		while (run) {
-			// Get article lists(title, url, press), not contents
+			/* Get article lists(title, url, press), not contents */
 			for (int i = 0; i < sid1.length; i++) {
 				while(true) {
 					sb.setLength(0);
-					sb.append(URL_HOME).append(URL_HEADLINE).append("sid1=").append(sid1[i]).append("#&date=%2000:00:00&page=").append(page);
+					if (i == 0) {
+						sb.append(URL_HOME).append(URL_BREAKING)
+							.append("sid1=001")
+							.append("&date=").append(df.format(Calendar.getInstance().getTime()))
+							.append("&page=").append(page);
+					}
+					else {
+						sb.append(URL_HOME).append(URL_HEADLINE)
+							.append("sid1=").append(sid1[i])
+							.append("#&date=%2000:00:00&page=").append(page);
+					}
 					
 					driver.get(sb.toString());
 					doc = Jsoup.parse(driver.getPageSource());
 					
 					// Entire article lists container element is named 'section_body'
-					elements = doc.select("#section_body li");
+					if (i == 0)
+						elements = doc.select("#main_content li");
+					else
+						elements = doc.select("#section_body li");
 					if (elements.isEmpty())
 						break;
 					
@@ -112,11 +128,17 @@ public class NaverCrawler extends Thread{
 							break;
 						}
 						
+						String url = "";
+						if (i == 0)
+							url = a.attr("href");
+						else
+							url = URL_HOME + a.attr("href");
+						
 						articles.add(new NewsArticle(
 								sid1[i],
 								// Parse only its 'aid' that articles primary key
 								aid,
-								URL_HOME + a.attr("href"),
+								url,
 								a.text(),
 								e.select(".writing").text()));
 						
@@ -140,7 +162,7 @@ public class NaverCrawler extends Thread{
 				page = 1;
 			}
 			
-			// Get articles' content(date, article)
+			/* Get articles' content(date, article) */
 			for (int i = 0; i < articles.size(); i++) {
 				NewsArticle article = articles.get(i);
 				
