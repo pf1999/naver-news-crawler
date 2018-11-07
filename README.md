@@ -30,3 +30,6 @@ If you want to specify each one's category, follow below code.
       ncrawler.setCategory(NaverCrawler.CAT_CULTURE | NaverCrawler.CAT_SOCIETY | NaverCrawler.CAT_SCIENCE);  
       ncrawler.run();
     }
+
+## Result
+![today politics](https://user-images.githubusercontent.com/44758316/48113241-5e061580-e29d-11e8-89eb-179367ce673f.PNG)
