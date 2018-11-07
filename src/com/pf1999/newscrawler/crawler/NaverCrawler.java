@@ -48,6 +48,7 @@ public class NaverCrawler extends Thread{
 	public static final int CAT_WORLD 		= 1 << 5;
 	public static final int CAT_SCIENCE 	= 1 << 6;
 	
+	private static final String RESULT_FILE_NAME	= "n_articles";
 	/*
 	 * Crawler configuration variables
 	 */
@@ -90,6 +91,9 @@ public class NaverCrawler extends Thread{
 		
 		int page = 1;
 		boolean old = false;
+		
+		File f = new File("./" + RESULT_FILE_NAME + ".txt");
+		int fileidx = 1;
 		
 		SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
 		
@@ -185,19 +189,28 @@ public class NaverCrawler extends Thread{
 				driver.get(sb.toString());
 				doc = Jsoup.parse(driver.getPageSource());
 				
+				if (!doc.select(".error_msg").isEmpty()) {
+					article.date = "1999-01-01";
+					article.article = "ERROR 404 : This article is removed because of press's request.";
+					articles.set(i, article);
+					continue;
+				}
+				
 				article.date = doc.select(".t11").first().text();
 				article.article = doc.select("#articleBodyContents").text();
 				
 				articles.set(i, article);
 			}
 			
-			File f = new File("./articles.txt");
 			FileWriter fw = null;
+			if (f.length() > 1024 * 10)
+				f = new File("./" + RESULT_FILE_NAME + "_" + fileidx + ".txt");
 			try {
 				fw = new FileWriter(f, true);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
+			
 			for (NewsArticle a : articles) {
 				try {
 					fw.write(a.parseLine() + "\n");

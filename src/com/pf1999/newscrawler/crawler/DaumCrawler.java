@@ -47,6 +47,8 @@ public class DaumCrawler extends Thread{
 	public static final int CAT_DIGITAL 	= 1 << 6;
 	public static final int CAT_SPORTS	 	= 1 << 7;
 	
+	private static final String RESULT_FILE_NAME = "d_articles";
+	
 	/*
 	 * Crawler configuration variables
 	 */
@@ -89,6 +91,9 @@ public class DaumCrawler extends Thread{
 		
 		int page = 1;
 		boolean old = false;
+		
+		File f = new File("./" + RESULT_FILE_NAME + ".txt");
+		int fileidx = 1;
 		
 		SimpleDateFormat df = new SimpleDateFormat("HH:mm");
 		
@@ -168,6 +173,13 @@ public class DaumCrawler extends Thread{
 				driver.get(sb.toString());
 				doc = Jsoup.parse(driver.getPageSource());
 				
+				if (!doc.select(".empty_view").isEmpty()) {
+					article.date = "1999-01-01";
+					article.article = "ERROR 404 : This article is not exists.";
+					articles.set(i, article);
+					continue;
+				}
+				
 				Elements es = doc.select(".info_view>.txt_info");
 				int idx = 0;
 				if (es.size() == 1) 		idx = 0;
@@ -181,13 +193,15 @@ public class DaumCrawler extends Thread{
 				articles.set(i, article);
 			}
 			
-			File f = new File("./articles2.txt");
 			FileWriter fw = null;
+			if (f.length() > 1024 * 10)
+				f = new File("./" + RESULT_FILE_NAME + "_" + fileidx + ".txt");
 			try {
 				fw = new FileWriter(f, true);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
+			
 			for (NewsArticle a : articles) {
 				try {
 					fw.write(a.parseLine() + "\n");

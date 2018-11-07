@@ -1,4 +1,3 @@
 /bin/
 *.jar
-articles.txt
-articles2.txt
+*.txt
