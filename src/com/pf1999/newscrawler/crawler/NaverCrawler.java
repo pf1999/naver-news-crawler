@@ -18,7 +18,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
 
 import com.pf1999.newscrawler.common.NewsArticle;
 
@@ -26,7 +26,7 @@ public class NaverCrawler extends Thread{
 	
 	public NaverCrawler() {
 		sb = new StringBuilder();
-		driver = new ChromeDriver();
+		driver = new FirefoxDriver();
 		articles = new ArrayList<>();
 		latestId = new HashMap<>();
 	}
@@ -53,7 +53,7 @@ public class NaverCrawler extends Thread{
 	 * Crawler configuration variables
 	 */
 	private int interval 	= 1000 * 60 * 5; // ms
-	private int category	= CAT_BREAKING | CAT_POLITICS | CAT_ECONOMIC | CAT_SOCIETY | CAT_CULTURE | CAT_WORLD | CAT_SCIENCE;
+	private int category	= /*CAT_BREAKING | CAT_POLITICS | CAT_ECONOMIC |*/ CAT_SOCIETY /*| CAT_CULTURE | CAT_WORLD | CAT_SCIENCE*/;
 	private boolean run		= true;
 	private StringBuilder sb;
 	
@@ -204,7 +204,7 @@ public class NaverCrawler extends Thread{
 			
 			FileWriter fw = null;
 			if (f.length() > 1024 * 10)
-				f = new File("./" + RESULT_FILE_NAME + "_" + fileidx + ".txt");
+				f = new File("./" + RESULT_FILE_NAME + "_" + ++fileidx + ".txt");
 			try {
 				fw = new FileWriter(f, true);
 			} catch (IOException e1) {

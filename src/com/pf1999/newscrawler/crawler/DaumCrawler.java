@@ -19,7 +19,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
 
 import com.pf1999.newscrawler.common.NewsArticle;
 
@@ -27,7 +27,7 @@ public class DaumCrawler extends Thread{
 	
 	public DaumCrawler() {
 		sb = new StringBuilder();
-		driver = new ChromeDriver();
+		driver = new FirefoxDriver();
 		articles = new ArrayList<>();
 		latestId = new HashMap<>();
 	}
@@ -195,7 +195,7 @@ public class DaumCrawler extends Thread{
 			
 			FileWriter fw = null;
 			if (f.length() > 1024 * 10)
-				f = new File("./" + RESULT_FILE_NAME + "_" + fileidx + ".txt");
+				f = new File("./" + RESULT_FILE_NAME + "_" + ++fileidx + ".txt");
 			try {
 				fw = new FileWriter(f, true);
 			} catch (IOException e1) {
