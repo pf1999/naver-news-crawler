@@ -17,8 +17,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.JavascriptException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 
 import com.pf1999.newscrawler.common.NewsArticle;
 
@@ -26,7 +28,7 @@ public class NaverCrawler extends Thread{
 	
 	public NaverCrawler() {
 		sb = new StringBuilder();
-		driver = new FirefoxDriver();
+		driver = new ChromeDriver();
 		articles = new ArrayList<>();
 		latestId = new HashMap<>();
 	}
@@ -53,7 +55,7 @@ public class NaverCrawler extends Thread{
 	 * Crawler configuration variables
 	 */
 	private int interval 	= 1000 * 60 * 5; // ms
-	private int category	= /*CAT_BREAKING | CAT_POLITICS | CAT_ECONOMIC |*/ CAT_SOCIETY /*| CAT_CULTURE | CAT_WORLD | CAT_SCIENCE*/;
+	private int category	= CAT_BREAKING | CAT_POLITICS | CAT_ECONOMIC | CAT_SOCIETY | CAT_CULTURE | CAT_WORLD | CAT_SCIENCE;
 	private boolean run		= true;
 	private StringBuilder sb;
 	
@@ -124,7 +126,12 @@ public class NaverCrawler extends Thread{
 							.append("#&date=%2000:00:00&page=").append(page);
 					}
 					
-					driver.get(sb.toString());
+					try {
+						driver.get(sb.toString());
+					} catch(TimeoutException te) {
+						te.printStackTrace();
+						break;
+					}
 					doc = Jsoup.parse(driver.getPageSource());
 					
 					// Entire article lists container element is named 'section_body'
@@ -196,8 +203,14 @@ public class NaverCrawler extends Thread{
 					continue;
 				}
 				
-				article.date = doc.select(".t11").first().text();
-				article.article = doc.select("#articleBodyContents").text();
+				Elements t11 = doc.select(".t11");
+				Elements abody = doc.select("#articleBodyContents");
+				
+				if (t11.size() == 0 || abody.size() == 0)
+					continue;
+				
+				article.date = t11.first().text();
+				article.article = abody.text();
 				
 				articles.set(i, article);
 			}

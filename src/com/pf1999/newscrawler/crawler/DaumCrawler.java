@@ -1,6 +1,5 @@
 /*
  * 
- * 
  */
 
 package com.pf1999.newscrawler.crawler;
@@ -18,8 +17,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 
 import com.pf1999.newscrawler.common.NewsArticle;
 
@@ -27,7 +27,7 @@ public class DaumCrawler extends Thread{
 	
 	public DaumCrawler() {
 		sb = new StringBuilder();
-		driver = new FirefoxDriver();
+		driver = new ChromeDriver();
 		articles = new ArrayList<>();
 		latestId = new HashMap<>();
 	}
@@ -112,7 +112,12 @@ public class DaumCrawler extends Thread{
 					sb.setLength(0);
 					sb.append(URL_HOME).append(cats.get(i)).append("?page=").append(page);
 					
-					driver.get(sb.toString());
+					try {
+						driver.get(sb.toString());
+					} catch(TimeoutException te) {
+						te.printStackTrace();
+						break;
+					}
 					doc = Jsoup.parse(driver.getPageSource());
 					
 					// Entire article lists container element is named 'section_body'
@@ -181,14 +186,19 @@ public class DaumCrawler extends Thread{
 				}
 				
 				Elements es = doc.select(".info_view>.txt_info");
+				Elements nv = doc.select(".news_view");
 				int idx = 0;
+				
 				if (es.size() == 1) 		idx = 0;
 				else if (es.size() == 2) 	idx = 1;
 				else if (es.size() == 3) 	idx = 2;
 				else						continue;
 				article.date = es.get(idx).text().replace("입력 ", "");
 				article.date = es.get(idx).text().replace("수정 ", "");
-				article.article = doc.select(".news_view").text();
+				
+				if (nv.size() == 0)
+					continue;
+				article.article = nv.text();
 				
 				articles.set(i, article);
 			}

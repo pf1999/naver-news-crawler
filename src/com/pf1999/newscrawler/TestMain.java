@@ -9,7 +9,7 @@ public class TestMain {
 	public static void main(String args[]) {
 		ArrayList<Thread> list = new ArrayList<>();
 		
-		// list.add(new NaverCrawler());
+		list.add(new NaverCrawler());
 		list.add(new DaumCrawler());
 		
 		for (Thread t : list) {
