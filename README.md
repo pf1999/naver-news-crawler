@@ -1,7 +1,7 @@
 ## News Crawler
 Naver and Daum news web crawler via Jsoup + Selenium.
 
-It will crawling all of news from naver and daum, or if you specified categories what you want, it only crawling those things.
+It will do crawling all of news from naver and daum, or if you specified categories what you want, it only crawls those things.
 
 Unfortunately naver using `ajax` to refresh page for updated news in every some minutes. So, I had to use `selenium`, because using `ajax` means web page is loaded dynamically and Jsoup cannot read them. For these behind story, you have to install `firefox` browser and download its driver. Crawler will open new instance of browser and use it to crawling.
 
@@ -17,13 +17,13 @@ Unfortunately naver using `ajax` to refresh page for updated news in every some 
 ## How to
 1. Download above core libraries from refereced link and this repository.
 1. Move all of jar files of core libraries to repository directory.
-1. Import project to eclipse photon or just use NaverCrawler or DaumCrawler Java file.
+1. Import project to eclipse photon or just use NaverCrawler or DaumCrawler .java files.
 
 ## Supported Categories and Specifying
 * Naver : _`Breaking`_, _`Politics`_, _`Economic`_, _`Society`_, _`Culture`_, _`World`_, _`Science`_
 * Daum  : _`Politics`_, _`Economic`_, _`Society`_, _`Culture`_, _`Foreign(=World)`_, _`Digital(=Science)`_, _`Sports`_, _`Entertain`_
 
-If you want to specify each one's category, follow below code.
+If you want to specify categories selectively, follow below code.
 
     public static void main(String args[]){}
       NaverCrawler ncrawler = new NaverCrawler();
